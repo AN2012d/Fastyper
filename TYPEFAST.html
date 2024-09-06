@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fastyper</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/x-icon" href="ft.png">
+    <style>
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+.container {
+    text-align: center;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#word {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+#typed-word {
+    font-size: 18px;
+    padding: 10px;
+    width: 200px;
+}
+
+#score, #timer {
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+#start-btn {
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+#start-btn:hover {
+    background-color: #218838;
+}
+
+#start-btn:disabled {
+    background-color: grey;
+}
+
+#record-list {
+    margin-top: 30px;
+    text-align: left;
+}
+
+#record-list h2 {
+    margin-bottom: 10px;
+}
+
+#score-history {
+    list-style-type: none;
+    padding: 0;
+}
+
+#score-history li {
+    background-color: #e9ecef;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="fastyper.png">
+        <div id="game-info">
+            <p id="timer">Time left: 60s</p>
+            <p id="word"></p>
+        </div>
+        <input type="text" id="typed-word" placeholder="Type the word here..." autofocus>
+        <button id="start-btn">Start Game</button>
+        <p id="score">Score: 0</p>
+        <div id="record-list">
+            <h2>Record List</h2>
+            <ul id="score-history"></ul>
+        </div>
+        <audio id="correct-sound" src="right.mp3" preload="auto"></audio>
+
+    </div>
+
+    <script>
+const words = ['apple', 'banana', 'orange', 'grape', 'pineapple', 'strawberry', 'mango', 'kiwi', 'melon', 'lemon', 'dollars', 'donald trump', 'truck', 'firework', 'co-worker', 'shoes', 'pizza', 'ronaldo', 'black', 'white', 'person', 'college', 'magnificent', 'headphones', 'double', 'mini-cooper', 'ford', 'forward', 'cute', 'cloud', 'homeless'];
+let currentWord = '';
+let score = 0;
+let time = 60;
+let timerInterval;
+let gameStarted = false;
+let scoreHistory = JSON.parse(localStorage.getItem('scoreHistory')) || []; // Load score history from LocalStorage
+
+const wordDisplay = document.getElementById('word');
+const typedWordInput = document.getElementById('typed-word');
+const timerDisplay = document.getElementById('timer');
+const scoreDisplay = document.getElementById('score');
+const startButton = document.getElementById('start-btn');
+const scoreHistoryList = document.getElementById('score-history');
+const correctSound = document.getElementById('correct-sound'); // Audio element for the correct word sound
+
+// Load saved score history when the page loads
+window.onload = updateScoreHistory;
+
+function startGame() {
+    gameStarted = true;
+    score = 0;
+    time = 60;
+    typedWordInput.value = '';
+    typedWordInput.focus();
+    startButton.disabled = true;
+    generateWord();
+    timerInterval = setInterval(updateTimer, 1000);
+}
+
+function generateWord() {
+    currentWord = words[Math.floor(Math.random() * words.length)];
+    wordDisplay.textContent = currentWord;
+}
+
+function updateTimer() {
+    if (time > 0) {
+        time--;
+        timerDisplay.textContent = `Time left: ${time}s`;
+    } else {
+        endGame();
+    }
+}
+
+function endGame() {
+    clearInterval(timerInterval);
+    gameStarted = false;
+    wordDisplay.textContent = 'Game Over!';
+    startButton.disabled = false;
+    scoreHistory.push(score);
+    localStorage.setItem('scoreHistory', JSON.stringify(scoreHistory)); // Save updated history to LocalStorage
+    updateScoreHistory();
+    alert(`Time's up! Your score is ${score}`);
+}
+
+function updateScoreHistory() {
+    scoreHistoryList.innerHTML = '';
+    scoreHistory.forEach((s, index) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `Game ${index + 1}: ${s} words`;
+        scoreHistoryList.appendChild(listItem);
+    });
+}
+
+typedWordInput.addEventListener('input', () => {
+    if (typedWordInput.value.trim() === currentWord && gameStarted) {
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+        typedWordInput.value = '';
+        generateWord();
+        correctSound.play(); // Play sound when the word is typed correctly
+    }
+});
+
+startButton.addEventListener('click', startGame);
+
+    </script>
+</body>
+</html>
